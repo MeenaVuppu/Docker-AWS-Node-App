@@ -1,26 +1,41 @@
 version: '3'
 services:
-  mongodb:
+  db:
     image: mongo
+    restart: always
     ports:
       - 27017:27017
     environment:
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
     volumes:
-      - mongo-data:/data/db 
+      - mongo-data:/data/db
+    networks:
+      - my-app
   mongo-express:
     image: mongo-express
-    restart: always # to fix MongoNetworkError when mongodb is not ready when mongo-express starts
+    restart: always
     ports:
       - 8081:8081
     environment:
       - ME_CONFIG_MONGODB_ADMINUSERNAME=admin
       - ME_CONFIG_MONGODB_ADMINPASSWORD=password
-      - ME_CONFIG_MONGODB_SERVER=mongodb
+      - ME_CONFIG_MONGODB_SERVER=db
+    networks:
+      - my-app
+  app:
+    build: .
+    restart: on-failure
+    ports:
+      - 3000:3000
+    depends_on:
+      - db
+    networks:
+      - my-app
+
 volumes:
-  mongo-data:
-    driver: local
+  mongo-data: {}
 
-
-    
+networks:
+  my-app:
+    external: true
